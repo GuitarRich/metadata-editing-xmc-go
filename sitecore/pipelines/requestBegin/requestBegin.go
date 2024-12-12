@@ -1,7 +1,6 @@
 package requestBegin
 
 import (
-	"fmt"
 	"net/http"
 
 	"guitarrich/xmcloud/model"
@@ -31,7 +30,6 @@ func (h *RequestPipelineHandler) RunPipeline(c echo.Context) error {
 	h.language = sitecore.GetEnvVar("SITECORE_LANGUAGE")
 	h.itemPath = c.Request().URL.Path
 
-	fmt.Printf("handler: %v\n", h)
 	// Handle special cases
 	if h.itemPath == "/sitemap.xml" {
 		return h.handleSitemap(c)

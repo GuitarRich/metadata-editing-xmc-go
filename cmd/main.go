@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"guitarrich/xmcloud/middleware/editing"
 	"guitarrich/xmcloud/sitecore"
 	"guitarrich/xmcloud/sitecore/handlers"
 	"guitarrich/xmcloud/sitecore/pipelines/requestBegin"
@@ -34,6 +35,11 @@ func main() {
 
 	// Kick off the main request pipeline
 	app.GET("/*", requestBegin.NewRequestPipelineHandler().RunPipeline)
+
+	// Register the editng API endpoints
+	app.OPTIONS("/api/editing/config", editing.NewEditingRequestHandler().Config)
+	app.GET("/api/editing/config", editing.NewEditingRequestHandler().Config)
+	app.GET("/api/editing/render", editing.NewEditingRequestHandler().Render)
 
 	// handle the XM `/-/media` endpoint
 	app.GET("/-/media", handlers.NewMediaHandler().ServeHTTP)

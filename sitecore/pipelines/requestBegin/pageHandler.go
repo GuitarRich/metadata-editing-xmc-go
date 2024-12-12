@@ -2,10 +2,14 @@ package requestBegin
 
 import (
 	"encoding/json"
+	"fmt"
+	"strings"
 
-	"github.com/labstack/echo/v4"
+	"guitarrich/xmcloud/middleware/editing"
 	"guitarrich/xmcloud/model"
 	"guitarrich/xmcloud/sitecore"
+
+	"github.com/labstack/echo/v4"
 )
 
 func (h *RequestPipelineHandler) handlePage(c echo.Context) error {
@@ -21,25 +25,63 @@ func (h *RequestPipelineHandler) handlePage(c echo.Context) error {
 	sitecore.RendererLog("Query: %s\n", c.Request().URL.RawQuery)
 	sitecore.RendererLog("mode: %s\n", c.Request().URL.Query().Get("mode"))
 
-	sitecore.RendererLog("Normal mode\n")
-	queryName = "LayoutQuery"
-	query = sitecore.GetLayoutQuery(h.itemPath, h.language, h.siteName)
+	editMode := c.Request().URL.Query().Get("mode") == "edit"
+	if editMode {
+		sitecore.RendererLog("This is Editing mode\n")
+		queryName = "EditingQuery"
+		var previewData editing.EditingMetadataPreviewData
+		previewData.Site = c.Request().URL.Query().Get("sc_site")
+		previewData.ItemId = c.Request().URL.Query().Get("sc_itemid")
+		previewData.Language = c.Request().URL.Query().Get("sc_lang")
+		previewData.EditMode = editing.EditModeMetadata
+		previewData.PageState = c.Request().URL.Query().Get("mode")
+		previewData.VariantIds = strings.Split(c.Request().URL.Query().Get("sc_variant"), ",")
+		previewData.Version = c.Request().URL.Query().Get("sc_version")
+		previewData.LayoutKind = c.Request().URL.Query().Get("sc_layoutKind")
 
-	result := sitecore.RunQueryWithParameters(query, queryName, headers, params)
+		fmt.Printf("layoutKind: %s\n", previewData.LayoutKind)
 
-	jsonString, _ := json.Marshal(result)
+		query = sitecore.GetEditingDataQuery()
 
-	layoutResponse := model.LayoutResponse{}
-	json.Unmarshal(jsonString, &layoutResponse)
+		headers["sc_layoutKind"] = previewData.LayoutKind
+		headers["sc_editmode"] = "true"
 
-	if layoutResponse.Data.Layout.Item.Rendered.Sitecore.Route.Placeholders == nil {
-		// This is a 404, so we need to render the 404 page
-		sitecore.RendererLog("404: NotFound\n")
-		h.NotFound = true
-		return nil
+		params["siteName"] = previewData.Site
+		params["itemId"] = previewData.ItemId
+		params["language"] = previewData.Language
+		params["version"] = previewData.Version
+		params["after"] = ""
+		params["pageSize"] = "50"
+
+		result := sitecore.RunQueryWithParameters(query, queryName, headers, params)
+
+		jsonString, _ := json.Marshal(result)
+
+		layoutResponse := model.EditingResponse{}
+		json.Unmarshal(jsonString, &layoutResponse)
+
+		h.renderedLayout = layoutResponse.Data.Item.Rendered
+	} else {
+		sitecore.RendererLog("Normal mode\n")
+		queryName = "LayoutQuery"
+		query = sitecore.GetLayoutQuery(h.itemPath, h.language, h.siteName)
+
+		result := sitecore.RunQueryWithParameters(query, queryName, headers, params)
+
+		jsonString, _ := json.Marshal(result)
+
+		layoutResponse := model.LayoutResponse{}
+		json.Unmarshal(jsonString, &layoutResponse)
+
+		if layoutResponse.Data.Layout.Item.Rendered.Sitecore.Route.Placeholders == nil {
+			// This is a 404, so we need to render the 404 page
+			sitecore.RendererLog("404: NotFound\n")
+			h.NotFound = true
+			return nil
+		}
+
+		h.renderedLayout = layoutResponse.Data.Layout.Item.Rendered
 	}
-
-	h.renderedLayout = layoutResponse.Data.Layout.Item.Rendered
 
 	return nil
 }
