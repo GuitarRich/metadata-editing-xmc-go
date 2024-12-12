@@ -1,0 +1,15 @@
+package components
+
+import (
+	"fmt"
+	"guitarrich/xmcloud/model"
+	"guitarrich/xmcloud/sitecore/render/components"
+)
+
+templ Header(component model.PlaceholderComponent, sc model.SitecoreContext) {
+	<div class={ components.DecorateComponent("component", component) }>
+		@templ.Raw(fmt.Sprintf("<!-- Placeholder: [%s] -->", "mainnav-container-"+component.Params.DynamicPlaceholderID))
+		@components.RenderPhWId("mainnav-container-"+component.Params.DynamicPlaceholderID, component.Placeholders,
+			component.UID, sc)
+	</div>
+}

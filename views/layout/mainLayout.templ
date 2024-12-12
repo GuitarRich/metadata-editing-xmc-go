@@ -1,0 +1,26 @@
+package layout
+
+import (
+	"guitarrich/xmcloud/model"
+	"guitarrich/xmcloud/sitecore/render/components"
+)
+
+templ MainLayout(data model.Rendered) {
+	@Base(data) {
+		<header>
+			<div id="header">
+				@components.RenderPlaceholder("headless-header", data.Sitecore.Route.Placeholders, data.Sitecore.Context)
+			</div>
+		</header>
+		<main class="border-t border-scgray-76 bg-gradient-main">
+			<div id="main">
+				@components.RenderPlaceholder("headless-main", data.Sitecore.Route.Placeholders, data.Sitecore.Context)
+			</div>
+		</main>
+		<footer>
+			<div id="footer">
+				@components.RenderPlaceholder("headless-footer", data.Sitecore.Route.Placeholders, data.Sitecore.Context)
+			</div>
+		</footer>
+	}
+}

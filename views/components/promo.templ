@@ -1,0 +1,47 @@
+package components
+
+import (
+	"fmt"
+
+	"guitarrich/xmcloud/model"
+	"guitarrich/xmcloud/sitecore"
+	"guitarrich/xmcloud/sitecore/render/fields"
+)
+
+func Promo(data model.PlaceholderComponent, sc model.SitecoreContext) templ.Component {
+	sitecore.RendererLog("PromoComponent [%s]\n", data.Params.FieldNames)
+	switch data.Params.FieldNames {
+	case "WithText":
+		return promoWithText(data)
+	default:
+		return promoDefault(data)
+	}
+}
+
+templ promoDefault(data model.PlaceholderComponent) {
+	<div class={ "component promo " + data.Params.GridParameters + " " + data.Params.Styles }>
+		<div class="component-content">
+			<div class="field-promotext">
+				@fields.RichTextField(data.Fields, "PromoText")
+			</div>
+			<div class="field-promolink">
+				@fields.LinkField(data.Fields, "PromoLink")
+			</div>
+			<div class="field-promoimage\">
+				@fields.ImageField(data.Fields, "PromoIcon", "")
+			</div>
+		</div>
+	</div>
+}
+
+templ promoWithText(data model.PlaceholderComponent) {
+	<div class={ "component withtext " + data.Params.GridParameters + " " + data.Params.Styles }>
+		@templ.Raw(fmt.Sprintf("<!-- WithText Component Data: %s -->", data))
+		<div class="component-content">
+			<div class="field-withtext">
+				<h2>WithText</h2>\
+				@fields.RichTextField(data.Fields, "PromoText")
+			</div>
+		</div>
+	</div>
+}

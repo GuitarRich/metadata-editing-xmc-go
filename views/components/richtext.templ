@@ -1,0 +1,17 @@
+package components
+
+import (
+	"guitarrich/xmcloud/model"
+	"guitarrich/xmcloud/sitecore/render/components"
+	"guitarrich/xmcloud/sitecore/render/fields"
+)
+
+func RichText(props model.PlaceholderComponent, sc model.SitecoreContext) templ.Component {
+	return defaultVariant(props, sc)
+}
+
+templ defaultVariant(props model.PlaceholderComponent, sc model.SitecoreContext) {
+	<div class={ components.DecorateComponent("component rich-text text-base leading-6 min-h-8 px-8 pb-4", props) }>
+		@fields.RichTextField(props.Fields, "Text")
+	</div>
+}
